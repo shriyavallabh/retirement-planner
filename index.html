@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Planning Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0f;
+            --card: #12121a;
+            --card-hover: #1a1a26;
+            --border: #1e1e2e;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f59e0b;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --text-bright: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse, rgba(99, 102, 241, 0.08), transparent 70%);
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent-light);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f8fafc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profile-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 30px 0 50px;
+        }
+
+        .profile-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 12px;
+        }
+
+        .profile-item .icon {
+            font-size: 1.4rem;
+        }
+
+        .profile-item .label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+
+        /* Timeline Section */
+        .timeline {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .timeline-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .timeline-card .step {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .timeline-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+
+        .timeline-card .big-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-light);
+            margin: 12px 0;
+        }
+
+        .timeline-card p {
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .timeline-card .tag {
+            display: inline-block;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--green);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .timeline-card .tag.warn {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--orange);
+        }
+
+        .timeline-card .tag.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+        }
+
+        /* Corpus Table */
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .table-wrapper {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 50px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: rgba(99, 102, 241, 0.08);
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 16px 20px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        tbody tr:hover { background: var(--card-hover); }
+
+        .highlight-row { background: rgba(99, 102, 241, 0.05); }
+        .highlight-row td { font-weight: 600; color: var(--accent-light); }
+
+        .corpus-amount {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        /* SIP Section */
+        .sip-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .sip-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .sip-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .sip-card .return-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .sip-card:nth-child(1) .return-badge {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--green);
+        }
+        .sip-card:nth-child(2) .return-badge {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-light);
+        }
+        .sip-card:nth-child(3) .return-badge {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--orange);
+        }
+
+        .sip-card .sip-amount {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin: 8px 0;
+        }
+
+        .sip-card .sip-label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .sip-card .sip-type {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Takeaway Cards */
+        .takeaways {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .takeaway-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            gap: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .takeaway-card:hover {
+            border-color: var(--accent);
+        }
+
+        .takeaway-card .emoji {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+
+        .takeaway-card h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 6px;
+        }
+
+        .takeaway-card p {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .cta-section h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+        }
+
+        .cta-section p {
+            color: var(--text-dim);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .cta-corpus {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--green), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Inflation visual */
+        .inflation-bar {
+            margin: 50px 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .bar-label {
+            min-width: 80px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 36px;
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+            transition: width 1.5s ease;
+        }
+
+        .bar-fill.today {
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            width: 50%;
+        }
+
+        .bar-fill.future {
+            background: linear-gradient(90deg, var(--orange), #fb923c);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .timeline, .sip-grid { grid-template-columns: 1fr; }
+            .takeaways { grid-template-columns: 1fr; }
+            .profile-bar { gap: 12px; }
+            .cta-corpus { font-size: 2.5rem; }
+            .container { padding: 20px 16px; }
+            .bar-container { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <div class="container">
+        <header>
+            <div class="badge">📊 RETIREMENT PLANNING</div>
+            <h1>Your Path to Financial Freedom</h1>
+            <p>A data-driven retirement plan to ensure ₹1 Lakh/month lifestyle continues after 60</p>
+        </header>
+
+        <div class="profile-bar">
+            <div class="profile-item">
+                <span class="icon">🎂</span>
+                <div>
+                    <div class="label">Current Age</div>
+                    <div class="value">50 years</div>
+                </div>
+            </div>
+            <div class="profile-item">
+                <span class="icon">🏖️</span>
+                <div>
+                    <div class="label">Retirement</div>
+                    <div class="value">Age 60</div>
+                </div>
+            </div>
+            <div class="profile-item">
+                <span class="icon">💰</span>
+                <div>
+                    <div class="label">Monthly Expense</div>
+                    <div class="value">₹1,00,000</div>
+                </div>
+            </div>
+            <div class="profile-item">
+                <span class="icon">⏳</span>
+                <div>
+                    <div class="label">Time to Build</div>
+                    <div class="value">10 Years</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3 Step Timeline -->
+        <div class="timeline">
+            <div class="timeline-card">
+                <div class="step">1</div>
+                <h3>Inflation Impact</h3>
+                <p>Your ₹1L/month today won't buy the same things in 10 years. At 7% inflation:</p>
+                <div class="big-number">₹1.97L</div>
+                <p>Monthly expense at age 60</p>
+                <span class="tag warn">Doubles every ~10 years</span>
+            </div>
+            <div class="timeline-card">
+                <div class="step">2</div>
+                <h3>Annual Need at 60</h3>
+                <p>Your yearly expenditure when you retire:</p>
+                <div class="big-number">₹24L</div>
+                <p>Per year, increasing with inflation every year after</p>
+                <span class="tag">₹2L × 12 months</span>
+            </div>
+            <div class="timeline-card">
+                <div class="step">3</div>
+                <h3>Corpus Required</h3>
+                <p>To sustain withdrawals for 25 years (age 60–85):</p>
+                <div class="big-number">₹5 Cr</div>
+                <p>At 8% returns, 6% inflation post-retirement</p>
+                <span class="tag">Recommended target</span>
+            </div>
+        </div>
+
+        <!-- Inflation Visual -->
+        <div class="inflation-bar">
+            <h3 class="section-title">💸 The Inflation Reality</h3>
+            <p class="section-subtitle">What ₹1 Lakh buys today vs what you'll need at 60</p>
+            <div class="bar-container">
+                <span class="bar-label">Today</span>
+                <div class="bar-track">
+                    <div class="bar-fill today">₹1,00,000/mo</div>
+                </div>
+            </div>
+            <div class="bar-container">
+                <span class="bar-label">At Age 60</span>
+                <div class="bar-track">
+                    <div class="bar-fill future">₹1,97,000/mo</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Corpus Scenarios Table -->
+        <h3 class="section-title">📋 Corpus Scenarios</h3>
+        <p class="section-subtitle">How long your money lasts based on corpus size</p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Corpus at 60</th>
+                        <th>Monthly Income</th>
+                        <th>Lasts Until</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🟡 Basic</td>
+                        <td class="corpus-amount">₹3.5 Crore</td>
+                        <td>₹2L/month</td>
+                        <td>Age 78</td>
+                        <td><span class="tag danger">High Risk</span></td>
+                    </tr>
+                    <tr class="highlight-row">
+                        <td>🟢 Comfortable</td>
+                        <td class="corpus-amount">₹5 Crore</td>
+                        <td>₹2L/month</td>
+                        <td>Age 85</td>
+                        <td><span class="tag">Recommended</span></td>
+                    </tr>
+                    <tr>
+                        <td>🔵 Safe</td>
+                        <td class="corpus-amount">₹6.5 Crore</td>
+                        <td>₹2L/month</td>
+                        <td>Age 90+</td>
+                        <td><span class="tag">Very Safe</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SIP Required -->
+        <h3 class="section-title">📈 Monthly SIP Required</h3>
+        <p class="section-subtitle">To build ₹5 Crore corpus in 10 years</p>
+        <div class="sip-grid">
+            <div class="sip-card">
+                <span class="return-badge">10% Returns</span>
+                <div class="sip-type">Conservative</div>
+                <div class="sip-amount">₹2.42L</div>
+                <div class="sip-label">per month</div>
+            </div>
+            <div class="sip-card">
+                <span class="return-badge">12% Returns</span>
+                <div class="sip-type">Moderate Equity</div>
+                <div class="sip-amount">₹2.15L</div>
+                <div class="sip-label">per month</div>
+            </div>
+            <div class="sip-card">
+                <span class="return-badge">14% Returns</span>
+                <div class="sip-type">Aggressive Equity</div>
+                <div class="sip-amount">₹1.90L</div>
+                <div class="sip-label">per month</div>
+            </div>
+        </div>
+
+        <!-- Takeaways -->
+        <h3 class="section-title">🧠 Key Takeaways</h3>
+        <p class="section-subtitle">Rules to remember for your retirement journey</p>
+        <div class="takeaways">
+            <div class="takeaway-card">
+                <span class="emoji">📉</span>
+                <div>
+                    <h4>Inflation Doubles Expenses</h4>
+                    <p>₹1L today = ₹2L in 10 years. Your corpus must beat inflation, not just match it.</p>
+                </div>
+            </div>
+            <div class="takeaway-card">
+                <span class="emoji">🏦</span>
+                <div>
+                    <h4>Don't Rely on FDs Alone</h4>
+                    <p>At 7% FD return and 6% inflation, your real growth is barely 1%. Equity exposure is essential.</p>
+                </div>
+            </div>
+            <div class="takeaway-card">
+                <span class="emoji">⏰</span>
+                <div>
+                    <h4>Start Today, Not Tomorrow</h4>
+                    <p>Every year of delay increases your monthly SIP requirement by 15-20%. Time is your biggest asset.</p>
+                </div>
+            </div>
+            <div class="takeaway-card">
+                <span class="emoji">🔄</span>
+                <div>
+                    <h4>Systematic Withdrawal Plan</h4>
+                    <p>At 60, move corpus into a balanced fund and set up SWP for monthly income. Don't withdraw lump sum.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2>Your Target Corpus</h2>
+            <p>Build this amount by age 60 for a comfortable, inflation-proof retirement</p>
+            <div class="cta-corpus">₹5,00,00,000</div>
+            <p>Start a ₹2.15L/month SIP in diversified equity mutual funds today</p>
+        </div>
+
+        <footer>
+            <p>Retirement Planning Report · Generated by Jarvis AI · Assumptions: 7% pre-retirement inflation, 6% post-retirement inflation, 8% post-retirement returns, life expectancy 85 years</p>
+        </footer>
+    </div>
+</body>
+</html>
